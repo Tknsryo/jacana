@@ -36,6 +36,7 @@ const ACCOUNT_SCHEMA: TableSchema = &[
     ("data", "String"),
     ("write_version", "UInt64"),
     ("updated_at", "DateTime64(3)"),
+    ("signature", "Nullable(FixedString(64))"),
 ];
 
 const SLOT_SCHEMA: TableSchema = &[
