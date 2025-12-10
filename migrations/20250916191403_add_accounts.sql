@@ -59,7 +59,8 @@ CREATE TABLE IF NOT EXISTS geyser.account
     rent_epoch UInt64,
     data String,
     write_version UInt64,
-    updated_at DateTime64(3) DEFAULT now64(3)
+    updated_at DateTime64(3) DEFAULT now64(3),
+    signature Nullable(FixedString(64))
 )
 ENGINE = ReplacingMergeTree(write_version)
 ORDER BY (pubkey, slot)

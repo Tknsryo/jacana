@@ -168,6 +168,7 @@ impl GeyserPlugin for JacanaPlugin {
             data: account_info.data.to_vec(),
             write_version: account_info.write_version,
             updated_at: chrono::Utc::now(),
+            signature: account_info.txn.and_then(|tx| Some(*tx.signature().as_array()))
         };
 
         // Send to ClickHouse with backpressure handling.

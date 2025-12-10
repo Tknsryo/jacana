@@ -48,6 +48,7 @@ pub struct Account {
     pub data: Vec<u8>,
     pub write_version: u64,
     pub updated_at: DateTime<Utc>,
+    pub signature: Option<[u8; 64]>,
 }
 
 impl BatchConvertible for Account {
@@ -71,6 +72,8 @@ impl BatchConvertible for Account {
         let total_data_size: usize = items.iter().map(|a| a.data.len()).sum();
         let mut data_builder = BinaryBuilder::with_capacity(len, total_data_size);
 
+        let mut signature_builder = BinaryBuilder::with_capacity(len, len * 64);
+
         for item in items {
             pubkey_builder.append_value(&item.pubkey);
             owner_builder.append_value(&item.owner);
@@ -81,6 +84,7 @@ impl BatchConvertible for Account {
             data_builder.append_value(&item.data);
             write_version_builder.append_value(item.write_version);
             updated_at_builder.append_value(item.updated_at.timestamp_millis());
+            signature_builder.append_option(item.signature.as_ref());
         }
 
         let schema = Self::schema();
@@ -96,6 +100,7 @@ impl BatchConvertible for Account {
                 Arc::new(data_builder.finish()),
                 Arc::new(write_version_builder.finish()),
                 Arc::new(updated_at_builder.finish()),
+                Arc::new(signature_builder.finish()),
             ],
         )
         .map_err(|e| ClickHouseError::Connection(format!("arrow RecordBatch creation failed: {e}")))
@@ -108,6 +113,7 @@ impl BatchConvertible for Account {
             + mem::size_of::<DateTime<Utc>>()
             + mem::size_of::<Vec<u8>>()
             + self.data.len()
+            + mem::size_of::<Option<[u8; 64]>>()
     }
 
     fn schema() -> SchemaRef {
@@ -125,6 +131,7 @@ impl BatchConvertible for Account {
                 DataType::Timestamp(TimeUnit::Millisecond, None),
                 false,
             ),
+            Field::new("signature", DataType::Binary, true),
         ]))
     }
 }
